@@ -323,13 +323,19 @@ Function SkipWhitespace(Scanner)
 EndFunction // SkipWhitespace()
 
 Function ScanComment(Scanner)
-	Var Len, Char;
+	Var Len, Pos, Start;
 	Len = 0;
-	Char = NextChar(Scanner);
-	While Char <> Chars.LF And Char <> "" Do
-		Len = Len + 1;
-		Char = NextChar(Scanner);
-	EndDo;
+	Start = Scanner.Pos + 1;
+	Pos = StrFind(Scanner.Source, Chars.LF,, Start);
+	If Pos > 0 Then
+		Scanner.Pos = Pos;
+		Scanner.Char = Chars.LF;
+		Len = Pos - Start;
+	Else
+		Scanner.Pos = Scanner.Len + 1;
+		Scanner.Char = "";
+		Len = Scanner.Len - Start;
+	EndIf; 
 	Return Mid(Scanner.Source, Scanner.Pos - Len, Len);
 EndFunction // ScanComment()
 
@@ -372,17 +378,23 @@ Function ScanString(Scanner)
 EndFunction // ScanString()
 
 Function ScanStringLen(Scanner)
-	Var Len, Char;
-	Len = 1;
-	Char = NextChar(Scanner);
-	While Char <> """" And Char <> Chars.LF And Char <> "" Do
-		Len = Len + 1;
-		Char = NextChar(Scanner);
-	EndDo;
-	If Char = Chars.LF Then
-		Scanner.Line = Scanner.Line + 1;
-	EndIf;
-	Return Len + ?(Char <> "", 1, 0);
+	Var Len, PosLF, Start;
+	Start = Scanner.Pos + 1;
+	PosLF = StrFind(Scanner.Source, Chars.LF,, Start);
+	If PosLF > 0 Then
+		Len = StrFind(Mid(Scanner.Source, Start, PosLF - Start), """");
+		If Len > 0 Then
+			Scanner.Pos = Start + Len - 1;
+		Else
+			Len = PosLF - Start;
+			Scanner.Line = Scanner.Line + 1;
+			Scanner.Pos = PosLF;
+		EndIf;
+	Else
+		Len = Scanner.Len - Start;
+		Scanner.Pos = Scanner.Len + 1;
+	EndIf; 
+	Return Len + 1;
 EndFunction // ScanStringLen()
 
 Function ScanDateTime(Scanner)

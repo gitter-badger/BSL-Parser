@@ -41,9 +41,11 @@ Procedure TranslateAtServer()
 		Eof = OneShellProcessor.Tokens().Eof;
 		
 		Scanner = OneShellProcessor.Scanner(Source.GetText());
+		Lexems = New Array;
 		While OneShellProcessor.Scan(Scanner) <> Eof Do
-			Result.AddLine(StrTemplate("%1: %2 -- `%3`", Scanner.Line, Scanner.Tok, Scanner.Lit));
+			Lexems.Add(StrTemplate("%1: %2 -- `%3`", Scanner.Line, Scanner.Tok, Scanner.Lit));
 		EndDo;
+		Result.SetText(StrConcat(Lexems, Chars.LF));
 		
 	ElsIf Output = "AST" Then
 		
